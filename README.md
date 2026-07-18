@@ -36,13 +36,30 @@ The controller continuously monitors the HK3 ACC signal and generates a delayed,
 
 The firmware implements the following state machine:
 
-```
-OFF → ON_WAIT → ON
- ↑               │
- └── OFF_WAIT ←──┘
-```
+## Operation
 
-This guarantees reliable behaviour even if the ignition is cycled rapidly.
+The controller uses four functional states:
+
+<p align="center">
+<img src="https://raw.githubusercontent.com/microfarad-de/dashcam-controller/master/doc/state-machine.png" alt="State Machine"/>
+</p>
+
+
+### OFF
+
+The dashcam ACC output is held **LOW**, indicating that the ignition is off. The controller remains in this state until the debounced ACC input becomes **HIGH**, at which point the dashcam is immediately switched on.
+
+### ON
+
+The dashcam ACC output is held **HIGH**, indicating that the ignition is on. When the debounced ACC input becomes **LOW**, the controller starts the configurable power-off delay by transitioning to **OFF_DELAY**.
+
+### OFF_DELAY
+
+The dashcam ACC output remains **HIGH** while the power-off delay (`OFF_DELAY_S`) is running. This prevents the dashcam from switching to parking mode during short ignition interruptions. Once the delay expires, the ACC output is switched **LOW** and the controller enters **OFF_HOLD**.
+
+### OFF_HOLD
+
+The dashcam ACC output is held **LOW** for at least `MIN_OFF_DURATION_S`, regardless of the ACC input. This guarantees that the dashcam always observes a complete ACC-OFF pulse before normal operation resumes. When the hold time expires, the controller returns to **OFF**.
 
 ## Power Saving
 
@@ -60,19 +77,15 @@ Timer0 remains active so the standard Arduino timing functions continue to work.
 
 ## Configuration
 
-The controller behaviour can be adjusted by modifying the following parameters in the source code:
+The controller behaviour can be adjusted by modifying the following parameters in the source code.
 
 | Parameter | Description |
 |-----------|-------------|
-| `OFF_DELAY_S` | Time in seconds the dashcam remains in normal recording mode after the vehicle ignition is switched off. |
-| `ON_DELAY_S` | Time in seconds before the dashcam is switched back to normal recording after the vehicle ignition is turned on. |
-| `INPUT_DEBOUNCE_DELAY_MS` | Minimum time the ACC input must remain stable before a change is accepted, preventing false triggering due to ignition glitches or contact bounce. |
-| `CLOCK_MULTIPLIER` | Scales all software timers for testing. A value greater than `1` speeds up long delays without modifying the configuration values. |
-| `SERIAL_DEBUG` | Enables serial debug output showing firmware version and state transitions. |
-
-During normal operation, `CLOCK_MULTIPLIER` should be left at `1`.
-
-Enable `SERIAL_DEBUG` for diagnostic output during development.
+| `OFF_DELAY_S` | Time in seconds the simulated ACC output remains HIGH after the vehicle ACC input goes LOW before the dashcam is switched off. |
+| `MIN_OFF_DURATION_S` | Minimum time in seconds the simulated ACC output remains LOW before it may be asserted again. This guarantees the dashcam always observes a complete ACC-OFF period. |
+| `INPUT_DEBOUNCE_DELAY_MS` | Time in milliseconds the ACC input must remain stable before a state change is accepted, preventing false triggering caused by ignition glitches or contact bounce. |
+| `CLOCK_MULTIPLIER` | Accelerates the ON/OFF timing during development by scaling the configured delays. Leave set to `1` for normal operation. |
+| `SERIAL_DEBUG` | Enables serial debug output showing the firmware version and state transitions. |
 
 ## License
 

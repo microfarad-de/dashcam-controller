@@ -1,5 +1,5 @@
 /*
- * Generate ACC signal for viofo dashcams
+ * Generate ACC signal for Viofo dashcams
  *
  * This source file is part of the follwoing repository:
  * http://www.github.com/microfarad-de/dashcam-controller
@@ -53,7 +53,7 @@
 #define SERIAL_BAUD              9600  // Serial communication baud rate
 #define CLOCK_MULTIPLIER         1     // Clock multiplier for fast debugging
 #define OFF_DELAY_S              60    // Power off delay in seconds after ACC input goes low
-#define ON_DELAY_S               10    // Power on delay in saconds after ACC input goes high
+#define MIN_OFF_DURATION_S       15    // Minimum power off time in seconds before turning back on
 #define INPUT_DEBOUNCE_DELAY_MS  1000  // Input debounce time delay in milliseconds
 #define ONE_SECOND               ((uint32_t)1000 / CLOCK_MULTIPLIER)  // 1 second duration in milliseconds
 
@@ -69,14 +69,14 @@
  * Main state machine state definitions
  */
 typedef enum {
-    STATE_OFF_ENTRY      = 0,
-    STATE_OFF            = 1,
-    STATE_ON_WAIT_ENTRY  = 2,
-    STATE_ON_WAIT        = 3,
-    STATE_ON_ENTRY       = 4,
-    STATE_ON             = 5,
-    STATE_OFF_WAIT_ENTRY = 6,
-    STATE_OFF_WAIT       = 7
+    STATE_OFF_HOLD_ENTRY = 0,
+    STATE_OFF_HOLD,
+    STATE_OFF_ENTRY,
+    STATE_OFF,
+    STATE_ON_ENTRY,
+    STATE_ON,
+    STATE_OFF_DELAY_ENTRY,
+    STATE_OFF_DELAY
 } State_e;
 
 
@@ -138,8 +138,7 @@ void setup (void)
 void loop (void)
 {
     static State_e state = STATE_OFF_ENTRY;
-    static uint32_t onTs = 0;
-    static uint32_t offTs = 0;
+    static uint32_t stateTs = 0;
 
     set_sleep_mode(SLEEP_MODE_IDLE);
 
@@ -157,51 +156,100 @@ void loop (void)
 
     switch (state) {
 
-        case STATE_OFF_ENTRY:
-            DEBUG(Serial.println(F("STATE_OFF")));
-            state = STATE_OFF;
-        case STATE_OFF:
-            if (HIGH == S.accIn) {
-                state = STATE_ON_WAIT_ENTRY;
-            }
-            break;
+        /*
+        * Force ACC output low and begin the minimum-low timer.
+        */
+        case STATE_OFF_HOLD_ENTRY:
+            DEBUG(Serial.println(F("STATE_OFF_HOLD")));
 
-        case STATE_ON_WAIT_ENTRY:
-            DEBUG(Serial.println(F("STATE_ON_WAIT")));
-            digitalWrite(LED_PIN, HIGH);
-            digitalWrite(ACC_OUT_PIN, HIGH);
-            offTs = ts;
-            state = STATE_ON_WAIT;
-        case STATE_ON_WAIT:
-            if (ts - offTs > OFF_DELAY_S * ONE_SECOND) {
-                state = STATE_ON_ENTRY;
-            }
-            break;
-
-        case STATE_ON_ENTRY:
-            DEBUG(Serial.println(F("STATE_ON")));
-            state = STATE_ON;
-        case STATE_ON:
-            if (LOW == S.accIn) {
-                state = STATE_OFF_WAIT_ENTRY;
-            }
-            break;
-
-        case STATE_OFF_WAIT_ENTRY:
-            DEBUG(Serial.println(F("STATE_OFF_WAIT")));
-            digitalWrite(LED_PIN, LOW);
             digitalWrite(ACC_OUT_PIN, LOW);
-            onTs = ts;
-            state = STATE_OFF_WAIT;
-        case STATE_OFF_WAIT:
-            if (ts - onTs > ON_DELAY_S * ONE_SECOND) {
+            digitalWrite(LED_PIN, LOW);
+
+            stateTs = ts;
+            state = STATE_OFF_HOLD;
+            [[fallthrough]];
+
+        /*
+        * ACC output must remain low for the full hold duration.
+        */
+        case STATE_OFF_HOLD:
+            if (ts - stateTs >= MIN_OFF_DURATION_S * ONE_SECOND) {
                 state = STATE_OFF_ENTRY;
             }
             break;
 
-        default:
+        /*
+        * Trace entry into the normal OFF state.
+        */
+        case STATE_OFF_ENTRY:
+            DEBUG(Serial.println(F("STATE_OFF")));
+
+            state = STATE_OFF;
+            [[fallthrough]];
+
+        /*
+        * ACC output is low and may now be asserted immediately
+        * when the debounced ACC input goes high.
+        */
+        case STATE_OFF:
+            if (S.accIn == HIGH) {
+                state = STATE_ON_ENTRY;
+            }
             break;
 
+        /*
+        * Assert the simulated ACC output.
+        */
+        case STATE_ON_ENTRY:
+            DEBUG(Serial.println(F("STATE_ON")));
+
+            digitalWrite(ACC_OUT_PIN, HIGH);
+            digitalWrite(LED_PIN, HIGH);
+
+            state = STATE_ON;
+            [[fallthrough]];
+
+        /*
+        * Normal ignition-on state.
+        */
+        case STATE_ON:
+            if (S.accIn == LOW) {
+                state = STATE_OFF_DELAY_ENTRY;
+            }
+            break;
+
+        /*
+        * ACC input has gone low, but the output remains high
+        * while the power-off delay runs.
+        */
+        case STATE_OFF_DELAY_ENTRY:
+            DEBUG(Serial.println(F("STATE_OFF_DELAY")));
+
+            stateTs = ts;
+            state = STATE_OFF_DELAY;
+            [[fallthrough]];
+
+        /*
+        * Cancel shutdown if ACC input returns high.
+        * Otherwise, enter the minimum-low state after the delay.
+        */
+        case STATE_OFF_DELAY:
+            if (S.accIn == HIGH) {
+                state = STATE_ON_ENTRY;
+            }
+            else if (ts - stateTs >= OFF_DELAY_S * ONE_SECOND) {
+                state = STATE_OFF_HOLD_ENTRY;
+            }
+            break;
+
+        /*
+        * Fail-safe recovery.
+        */
+        default:
+            digitalWrite(ACC_OUT_PIN, LOW);
+            digitalWrite(LED_PIN, LOW);
+            state = STATE_OFF_HOLD_ENTRY;
+            break;
     }
 
 }
