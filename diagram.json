@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "author": "Karim Hraibi",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "wokwi-arduino-nano",
+      "id": "nano",
+      "top": 100,
+      "left": 0,
+      "attrs": {
+        "frequency": "8m"
+      }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led-red",
+      "top": 0 ,
+      "left": 30,
+      "attrs": {
+        "color": "red",
+        "label": "Dashcam ACC"
+      }
+    },
+    {
+      "type": "wokwi-slide-switch",
+      "id": "acc-switch",
+      "top": 0,
+      "left": 120,
+      "attrs": {}
+    }
+  ],
+  "connections": [
+    [ "nano:2", "led-red:A", "orange", [ "v-16", "*", "h6" ] ],
+    [ "nano:GND.2", "led-red:C", "black", [ "v-25", "*", "h0" ] ],
+
+    [ "nano:4", "acc-switch:2", "orange", [ "v-70", "h20" ] ],
+    [ "nano:5V", "acc-switch:1", "red", [ "v-40", "h20" ] ],
+    [ "nano:GND.2", "acc-switch:3", "black", [ "v-30", "h20" ] ]
+  ]
+}
