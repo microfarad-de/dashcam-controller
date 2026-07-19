@@ -54,7 +54,7 @@
 #define SERIAL_BAUD              9600  // Serial communication baud rate
 #define CLOCK_MULTIPLIER         1     // Clock multiplier for fast debugging
 #define OFF_DELAY_S              60    // Power off delay in seconds after ACC input goes low
-#define MIN_OFF_DURATION_S       10    // Minimum power off time in seconds before turning back on
+#define MIN_OFF_DURATION_S       15    // Minimum power off time in seconds before turning back on
 #define ONE_SECOND               ((uint32_t)1000 / CLOCK_MULTIPLIER)  // 1 second duration in milliseconds
 
 
