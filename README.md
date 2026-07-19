@@ -14,6 +14,11 @@ The controller solves a firmware issue where rapid ignition ON/OFF transitions c
 * Simple finite state machine
 * Optional serial debugging
 
+## Prerequisites
+
+* ATmega328P based Arduino Pro Mini, Arduino Nano or similar model
+* The code uses the watchdog timer, therefore the custom bootloader with watchdog support must be installed from: https://github.com/microfarad-de/bootloader
+
 ## Circuit Diagram
 
 <p align="center">

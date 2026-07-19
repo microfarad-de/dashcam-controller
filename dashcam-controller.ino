@@ -36,6 +36,7 @@
 #include <Arduino.h>
 #include <avr/sleep.h>
 #include <avr/power.h>
+#include <avr/wdt.h>
 
 
 /*
@@ -99,6 +100,11 @@ void printVersion (uint8_t);
  */
 void setup (void)
 {
+    // Clear watchdog reset flag
+    MCUSR &= ~(1 << WDRF);
+    // Enable watchdog with 8 second timeout
+    wdt_enable(WDTO_8S);
+
     pinMode(ACC_IN_PIN, INPUT);
     pinMode(ACC_OUT_PIN, OUTPUT);
     pinMode(LED_PIN, OUTPUT);
@@ -151,6 +157,7 @@ void loop (void)
 
     uint32_t ts = millis();
 
+    wdt_reset();
     readInputPin();
 
     switch (state) {
