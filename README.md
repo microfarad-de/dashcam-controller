@@ -91,6 +91,17 @@ The controller behaviour can be adjusted by modifying the following parameters i
 | `CLOCK_MULTIPLIER` | Accelerates the ON/OFF timing during development by scaling the configured delays. Leave set to `1` for normal operation. |
 | `SERIAL_DEBUG` | Enables serial debug output showing the firmware version and state transitions. |
 
-## License
+## Gallery
 
-Licensed under the GNU General Public License v3.0 or later.
+
+ <p align="center">
+ <img src="https://raw.githubusercontent.com/microfarad-de/dashcam-controller/master/doc/perspective-1.png" alt="drawing" width="600"/>
+ </p>
+
+ <p align="center">
+ <img src="https://raw.githubusercontent.com/microfarad-de/dashcam-controller/master/doc/perspective-2.png" alt="drawing" width="600"/>
+ </p>
+
+ <p align="center">
+ <img src="https://raw.githubusercontent.com/microfarad-de/dashcam-controller/master/doc/perspective-3.png" alt="drawing" width="600"/>
+ </p>
