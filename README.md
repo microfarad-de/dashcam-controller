@@ -9,7 +9,7 @@ The controller solves a firmware issue where rapid ignition ON/OFF transitions c
 * Designed for the VIOFO HK3 hardwire kit
 * Debounces and delays the ACC signal
 * Configurable ON and OFF delays
-* Low power consumption (~2 mA standby)
+* Low power consumption (~2 ot ~5 mA standby)
 * Uses AVR Idle sleep while keeping `millis()` running
 * Simple finite state machine
 * Optional serial debugging
