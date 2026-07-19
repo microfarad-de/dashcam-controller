@@ -23,7 +23,7 @@ The controller solves a firmware issue where rapid ignition ON/OFF transitions c
 The controller is installed inline between the **VIOFO HK3 hardwire kit** and the dashcam.
 
 - The HK3 supplies regulated **5 V** to both the Arduino Pro Mini and the dashcam.
-- **VBUS**, **D+**, **D−** and **GND** are passed directly from the HK3 to the dashcam.
+- **VBUS** and **GND** are passed directly from the HK3 to the dashcam.
 - The **Mini-USB ID pin** carries the HK3 ACC signal.
 - The Arduino monitors the HK3 ACC signal on **D4** through a 1 kΩ series resistor.
 - A delayed and debounced ACC signal is generated on **D2**, which drives the dashcam's ID pin through a second 1 kΩ series resistor.
