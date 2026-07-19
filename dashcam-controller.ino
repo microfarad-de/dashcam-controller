@@ -50,7 +50,7 @@
 /*
  * Configuration parameters
  */
-#define SERIAL_DEBUG                   // Serial debug printing
+//#define SERIAL_DEBUG                 // Serial debug printing
 #define SERIAL_BAUD              9600  // Serial communication baud rate
 #define CLOCK_MULTIPLIER         1     // Clock multiplier for fast debugging
 #define OFF_DELAY_S              60    // Power off delay in seconds after ACC input goes low
@@ -104,6 +104,15 @@ void setup (void)
     MCUSR &= ~(1 << WDRF);
     // Enable watchdog with 8 second timeout
     wdt_enable(WDTO_8S);
+
+    // Make all pins an output and set them to low to reduce power,
+    // except crystal pins.
+    PORTB = 0;
+    PORTC = 0;
+    PORTD = 0;
+    DDRB = 0x3F;
+    DDRC = 0x3F;
+    DDRD = 0xFF;
 
     pinMode(ACC_IN_PIN, INPUT);
     pinMode(ACC_OUT_PIN, OUTPUT);
