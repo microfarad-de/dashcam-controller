@@ -83,7 +83,6 @@ The controller behaviour can be adjusted by modifying the following parameters i
 |-----------|-------------|
 | `OFF_DELAY_S` | Time in seconds the simulated ACC output remains HIGH after the vehicle ACC input goes LOW before the dashcam is switched off. |
 | `MIN_OFF_DURATION_S` | Minimum time in seconds the simulated ACC output remains LOW before it may be asserted again. This guarantees the dashcam always observes a complete ACC-OFF period. |
-| `INPUT_DEBOUNCE_DELAY_MS` | Time in milliseconds the ACC input must remain stable before a state change is accepted, preventing false triggering caused by ignition glitches or contact bounce. |
 | `CLOCK_MULTIPLIER` | Accelerates the ON/OFF timing during development by scaling the configured delays. Leave set to `1` for normal operation. |
 | `SERIAL_DEBUG` | Enables serial debug output showing the firmware version and state transitions. |
 

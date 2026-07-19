@@ -49,12 +49,11 @@
 /*
  * Configuration parameters
  */
-//#define SERIAL_DEBUG                 // Serial debug printing
+#define SERIAL_DEBUG                   // Serial debug printing
 #define SERIAL_BAUD              9600  // Serial communication baud rate
 #define CLOCK_MULTIPLIER         1     // Clock multiplier for fast debugging
 #define OFF_DELAY_S              60    // Power off delay in seconds after ACC input goes low
 #define MIN_OFF_DURATION_S       10    // Minimum power off time in seconds before turning back on
-#define INPUT_DEBOUNCE_DELAY_MS  1000  // Input debounce time delay in milliseconds
 #define ONE_SECOND               ((uint32_t)1000 / CLOCK_MULTIPLIER)  // 1 second duration in milliseconds
 
 
@@ -260,22 +259,19 @@ void loop (void)
  */
 void readInputPin (void)
 {
-  static uint32_t inputTs = 0;
-  uint32_t ts = millis();
+    static uint8_t avg = 0;
+    const uint8_t samples = 8;
+    uint8_t weight = digitalRead(ACC_IN_PIN) * 255;
 
 
-  if (HIGH == S.accIn) {
-    if (HIGH == digitalRead(ACC_IN_PIN)) inputTs = ts;
-    if (ts - inputTs > INPUT_DEBOUNCE_DELAY_MS) {
-      S.accIn = LOW;
+    avg = (weight + (samples - 1) * avg) / samples;
+
+    if (avg > 200) {
+        S.accIn = HIGH;
     }
-  }
-  else {
-    if (LOW == digitalRead(ACC_IN_PIN)) inputTs = ts;
-    if (ts - inputTs > INPUT_DEBOUNCE_DELAY_MS) {
-      S.accIn = HIGH;
+    else if (avg < 55) {
+        S.accIn = LOW;
     }
-  }
 }
 
 
@@ -287,8 +283,8 @@ void readInputPin (void)
 #define QUOTE(x) STRINGIFY(x)
 void printVersion (uint8_t indent)
 {
-  for (uint8_t i = 0; i < indent; i++) {
-    Serial.print(" ");
-  }
-  Serial.println(F("V " QUOTE(VERSION_MAJOR) "." QUOTE(VERSION_MINOR) "." QUOTE(VERSION_MAINT)));
+    for (uint8_t i = 0; i < indent; i++) {
+        Serial.print(" ");
+    }
+    Serial.println(F("V " QUOTE(VERSION_MAJOR) "." QUOTE(VERSION_MINOR) "." QUOTE(VERSION_MAINT)));
 }
